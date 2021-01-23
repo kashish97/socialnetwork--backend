@@ -7,9 +7,12 @@ var bodyparser = require("body-parser");
 
 const app = express();
 const port = 7000;
+const cors = require('cors');
+const e = require('express');
 
 app.use(bodyparser.urlencoded({ extended: false }));
 app.use(bodyparser.json());
+app.use(cors());
 
 mongoose
     .connect("mongodb://localhost:27017/socialnetwork")
@@ -43,6 +46,23 @@ app.post('/users/signup', async (req, res) => {
         });
 });
 
+app.get("/users/:username",(req, res)=>{
+    let username = req.params.username;
+    User.findOne({username: username})
+        .then(profile => {
+            if(profile){
+                res.send(false);
+            }
+            else{
+                res.send(true);
+            }
+
+        }).catch(err => {
+            res.send(err);
+            res.status(500);
+        })
+})
+
 app.post('/users/login', (req, res) => {
     var newUser = {}
     newUser.username = req.body.username;
@@ -51,20 +71,24 @@ app.post('/users/login', (req, res) => {
     User.findOne({ username: newUser.username })
         .then((profile) => {
             if (!profile) {
+                res.status(404);
                 res.send("User does not exist");
             }
             else {
-                console.log("User password is ", profile.password);
-                console.log("Request password is ", newUser.password);
+                console.log(profile);
                 if (profile.password == newUser.password) {
-                    res.send("Login successful");
+                    res.status(200);
+                    
+                    res.send(profile);
                 }
                 else {
+                    res.status(500);
                     res.send("Incorrect password");
                 }
             }
         })
         .catch(err => {
+            res.status(500);
             console.error("Error is ", err.message);
         });
 });
@@ -95,6 +119,8 @@ app.get("/posts", async(req, res) => {
             res.status(500).send("Error while getting posts" + err);
         });
 });
+
+
 
 
 app.listen(port, () => {
