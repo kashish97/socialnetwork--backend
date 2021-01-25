@@ -28,7 +28,6 @@ app.post('/users/signup', async (req, res) => {
         username: req.body.username,
         state: req.body.state,
         age: req.body.age,
-        dateOfBirth: req.body.dateOfBirth
     });
     await User.findOne({ username: userNew.username })
         .then(async (profile) => {
